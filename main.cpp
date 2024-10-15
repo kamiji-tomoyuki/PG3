@@ -56,10 +56,10 @@ void DiceGame() {
     // ランダムな値を取得
     int dice = DiceRoll();
     // 判定！
-    std::function<bool(int)> isEven = [](int num) -> bool { return num % 2 == 1; };
+    std::function<bool(int)> search = [](int num) -> bool { return num % 2 == 1; };
 
     //予想と結果を比較する
-    bool correct = (forecast == isEven(dice));
+    bool correct = (forecast == search(dice));
 
     // 3秒待機後、結果を表示
     Result(correct, SetTimeout, dice);
