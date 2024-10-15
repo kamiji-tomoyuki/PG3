@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include <chrono>   
+#include <functional>
 #include <thread>
 #include <time.h>   
 
@@ -20,6 +21,8 @@ int Search(int number) {
 }
 
 void Result(bool correct, void (*callback)(), int dice) {
+    printf("コロコロコロ...\n");
+
     // 3秒待機
     callback();
 
@@ -38,7 +41,10 @@ void SetTimeout() {
     std::this_thread::sleep_for(std::chrono::seconds(3));
 }
 
-int main() {
+/// <summary>
+/// ダイスゲーム
+/// </summary>
+void DiceGame() {
     srand(time(0));
 
     printf("奇数(1) or 偶数(0)？ : ");
@@ -50,13 +56,17 @@ int main() {
     // ランダムな値を取得
     int dice = DiceRoll();
     // 判定！
-    int search = Search(dice);
+    std::function<bool(int)> isEven = [](int num) -> bool { return num % 2 == 1; };
 
     //予想と結果を比較する
-    bool correct = (forecast == search);
+    bool correct = (forecast == isEven(dice));
 
     // 3秒待機後、結果を表示
     Result(correct, SetTimeout, dice);
 
+}
+
+int main() {
+    DiceGame();
     return 0;
 }
