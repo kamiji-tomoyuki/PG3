@@ -19,7 +19,7 @@ void SpriteCommon::Finalize()
 
 void SpriteCommon::Initialize(DirectXCommon* dxCommon)
 {
-	//引数を受け取ってメンバ変数に記録する
+	// 引数を受け取ってメンバ変数に記録する
 	dxCommon_ = dxCommon;
 
 	CreateGraphicsPipelineState();
@@ -98,7 +98,7 @@ void SpriteCommon::CreateGraphicsPipelineState()
 {
 	HRESULT hr;
 
-	//ルートシグネチャの作成
+	// ルートシグネチャの作成
 	CreateRootSignature();
 
 #pragma region PSOに必要な変数の作成
@@ -149,7 +149,7 @@ void SpriteCommon::CreateGraphicsPipelineState()
 
 #pragma endregion PSOに必要な変数の作成
 
-	//PSOの作成
+	// PSOの作成
 	graphicsPipelineStateDesc.pRootSignature = rootSignature.Get();												// RootSignature
 	graphicsPipelineStateDesc.InputLayout = inputLayoutDesc;													// inputLayout
 	graphicsPipelineStateDesc.VS = { vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize() }; // VertexShader

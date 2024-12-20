@@ -2,53 +2,29 @@
 #include "SpriteCommon.h"
 #include "TextureManager.h"
 #include "WinApp.h"
+#include <fstream>
 
-void Sprite::Initialize(SpriteCommon* spriteCommon, std::string textureFilePath)
+void Sprite::Initialize(std::string textureFilePath,
+	Vector2 position, Vector4 color, Vector2 anchorpoint)
 {
 	// --- 引数で受け取りメンバ変数に記録 ---
-	this->spriteCommon = spriteCommon;
-	this->textureFilePath_ = textureFilePath;
+	this->spriteCommon = SpriteCommon::GetInstance();
 
-#pragma region 頂点データ
-	// --- vertexResourceの作成 ---
-	vertexResource = spriteCommon->GetDxCommon()->CreateBufferResource(sizeof(VertexData) * vertexCount);
-	// --- indexResourceの作成 ---
-	indexResource = spriteCommon->GetDxCommon()->CreateBufferResource(sizeof(uint32_t) * vertexCount);
+	std::ifstream file;
+	// 基本パスを指定（"Resources/images/"）
+	std::string basePath = "Resources/images/";
+	std::string fullPath = basePath + textureFilePath;
+	this->textureFilePath_ = fullPath;
 
-	// --- vertexBufferViewの作成 ---
-	vertexBufferView.BufferLocation = vertexResource->GetGPUVirtualAddress();
-	vertexBufferView.SizeInBytes = sizeof(VertexData) * vertexCount;
-	vertexBufferView.StrideInBytes = sizeof(VertexData);
-	// --- indexBufferViewの作成 ---
-	indexBufferView.BufferLocation = indexResource->GetGPUVirtualAddress();
-	indexBufferView.SizeInBytes = sizeof(uint32_t) * vertexCount;
-	indexBufferView.Format = DXGI_FORMAT_R32_UINT;
+	// --- 頂点データ ( Vertex / Index ) ---
+	CreateVertexData();
+	CreateIndexData();
 
-	// --- vertexDataに割り当てる ---
-	vertexResource->Map(0, nullptr, reinterpret_cast<void**>(&vertexData));
-	VertexDataWriting();
-	// --- indexDataに割り当てる ---
-	indexResource->Map(0, nullptr, reinterpret_cast<void**>(&indexData));
-	IndexDataWriting();
-#pragma endregion 頂点データ
+	// --- マテリアルデータ ---
+	CreateMaterialData();
 
-#pragma region マテリアルデータ
-	// --- materialResourceの作成 ---
-	materialResource = spriteCommon->GetDxCommon()->CreateBufferResource(sizeof(Material));
-
-	// --- materialDataに割り当てる ---
-	materialResource->Map(0, nullptr, reinterpret_cast<void**>(&materialData));
-	MaterialDataWriting();
-#pragma endregion マテリアルデータ
-
-#pragma region 座標変換
-	// --- transformationMatrixResourceの作成 ---
-	transformationMatrixResource = spriteCommon->GetDxCommon()->CreateBufferResource(sizeof(TransformationMatrix));
-
-	// --- transformationMatrixDataに割り当てる ---
-	transformationMatrixResource->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixData));
-	TransformationMatrixDataWriting();
-#pragma endregion 座標変換
+	// --- 座標変換 ---
+	CreateTransformMatrixData();
 
 	// --- テクスチャ読み込み ---
 	TextureManager::GetInstance()->LoadTexture(textureFilePath_);
@@ -59,6 +35,9 @@ void Sprite::Initialize(SpriteCommon* spriteCommon, std::string textureFilePath)
 	// --- 切り取り ---
 	AdjustTextureSize();
 
+	// --- その他引数の適応 ---
+	SetPosition(position);
+	SetAnchorPoint(anchorpoint);
 }
 
 void Sprite::Update()
@@ -69,7 +48,7 @@ void Sprite::Update()
 	transform.scale = { size.x, size.y, 1.0f };
 	worldMatrix = MakeAffineMatrix(transform.scale, transform.rotate, transform.translate);
 	viewMatrix = MakeIdentity4x4();
-	projectionMatrix = MakeOrthographicMatrix(0.0f, 0.0f, float(WinApp::kClientWidth), float(WinApp::kClientHeight), 0.0f, 100.0f);
+	projectionMatrix = MakeOrthographicMatrix(0.0f, 0.0f, float(kClientWidth), float(kClientHeight), 0.0f, 100.0f);
 
 	// --- transformationMatrixDataの更新 ---
 	transformationMatrixData->WVP = worldMatrix * viewMatrix * projectionMatrix;
@@ -93,12 +72,15 @@ void Sprite::Update()
 	tex_top = textureLeftTop.y / metadata.height;
 	tex_bottom = (textureLeftTop.y + textureSize.y) / metadata.height;
 	// 適用
-	VertexDataWriting();
+	CreateVertexData();
 
 }
 
 void Sprite::Draw()
 {
+	// --- 更新 ---
+	Update();
+
 	// --- vertexBufferViewの生成 ---
 	spriteCommon->GetDxCommon()->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferView);
 	// --- indexBufferViewの生成 ---
@@ -115,11 +97,21 @@ void Sprite::Draw()
 
 	// --- 描画(DrawCall/ドローコール) ---
 	spriteCommon->GetDxCommon()->GetCommandList()->DrawIndexedInstanced(vertexCount, 1, 0, 0, 0);
-
 }
 
-void Sprite::VertexDataWriting()
+void Sprite::CreateVertexData()
 {
+	// --- vertexResourceの作成 ---
+	vertexResource = spriteCommon->GetDxCommon()->CreateBufferResource(sizeof(VertexData) * vertexCount);
+
+	// --- vertexBufferViewの作成 ---
+	vertexBufferView.BufferLocation = vertexResource->GetGPUVirtualAddress();
+	vertexBufferView.SizeInBytes = sizeof(VertexData) * vertexCount;
+	vertexBufferView.StrideInBytes = sizeof(VertexData);
+
+	// --- vertexDataに割り当てる ---
+	vertexResource->Map(0, nullptr, reinterpret_cast<void**>(&vertexData));
+
 	vertexData[0].position = { left, bottom, 0.0f, 1.0f }; // 左下
 	vertexData[0].texcoord = { tex_left, tex_bottom };
 
@@ -132,8 +124,19 @@ void Sprite::VertexDataWriting()
 	vertexData[3].position = { right, top, 0.0f, 1.0f }; // 右上
 	vertexData[3].texcoord = { tex_right, tex_top };
 }
-void Sprite::IndexDataWriting()
+void Sprite::CreateIndexData()
 {
+	// --- indexResourceの作成 ---
+	indexResource = spriteCommon->GetDxCommon()->CreateBufferResource(sizeof(uint32_t) * vertexCount);
+
+	// --- indexBufferViewの作成 ---
+	indexBufferView.BufferLocation = indexResource->GetGPUVirtualAddress();
+	indexBufferView.SizeInBytes = sizeof(uint32_t) * vertexCount;
+	indexBufferView.Format = DXGI_FORMAT_R32_UINT;
+
+	// --- indexDataに割り当てる ---
+	indexResource->Map(0, nullptr, reinterpret_cast<void**>(&indexData));
+
 	indexData[0] = 0;
 	indexData[1] = 1;
 	indexData[2] = 2;
@@ -143,15 +146,27 @@ void Sprite::IndexDataWriting()
 	indexData[5] = 2;
 }
 
-void Sprite::MaterialDataWriting()
+void Sprite::CreateMaterialData()
 {
+	// --- materialResourceの作成 ---
+	materialResource = spriteCommon->GetDxCommon()->CreateBufferResource(sizeof(Material));
+
+	// --- materialDataに割り当てる ---
+	materialResource->Map(0, nullptr, reinterpret_cast<void**>(&materialData));
+
 	materialData->color = { 1.0f, 1.0f, 1.0f, 1.0f };
 	materialData->enableLighting = false;
 	materialData->uvTransform = MakeIdentity4x4();
 }
 
-void Sprite::TransformationMatrixDataWriting()
+void Sprite::CreateTransformMatrixData()
 {
+	// --- transformationMatrixResourceの作成 ---
+	transformationMatrixResource = spriteCommon->GetDxCommon()->CreateBufferResource(sizeof(TransformationMatrix));
+
+	// --- transformationMatrixDataに割り当てる ---
+	transformationMatrixResource->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixData));
+
 	transformationMatrixData->WVP = MakeIdentity4x4();
 	transformationMatrixData->World = MakeIdentity4x4();
 }

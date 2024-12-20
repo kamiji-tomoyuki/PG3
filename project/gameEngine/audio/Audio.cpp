@@ -56,7 +56,7 @@ SoundData Audio::LoadWav(const char* filename)
 	while (file.read((char*)&chunkHeader, sizeof(chunkHeader))) {
 		// チャンクIDが "fmt" か確認
 		if (strncmp(chunkHeader.id, "fmt ", 4) == 0) {
-			// Formatチャンクのサイズを確認し、データを読み込む
+			// Formatチャンクのサイズを確認、データを読み込む
 			assert(chunkHeader.size <= sizeof(format.fmt));
 
 			format.chunk = chunkHeader; // チャンクヘッダーをコピー
@@ -75,15 +75,16 @@ SoundData Audio::LoadWav(const char* filename)
 		assert(0);
 	}
 
-	// Dataチャンクの読み込み
+	// Dataチャンクの読み込みとスキップ処理
 	ChunkHeader data;
-	file.read((char*)&data, sizeof(data));
-	// JUNKチャンクを検出した場合
-	if (strncmp(data.id, "JUNK", 4) == 0) {
-		// 読み取り位置をJUNKチャンクの終わりまで進める
-		file.seekg(data.size, std::ios_base::cur);
-		// 再読み込み
-		file.read((char*)&data, sizeof(data));
+	while (file.read((char*)&data, sizeof(data))) {
+		if (strncmp(data.id, "data", 4) == 0) {
+			break; // "data" チャンクを見つけたらループを抜ける
+		}
+		else {
+			// 現在のチャンクが "data" でない場合、そのサイズ分シーク
+			file.seekg(data.size, std::ios_base::cur);
+		}
 	}
 
 	if (strncmp(data.id, "data", 4) != 0) {
@@ -120,10 +121,10 @@ void Audio::SoundUnload(Microsoft::WRL::ComPtr<IXAudio2> xAudio2, SoundData* sou
 	soundData->wfex = {};
 }
 
-void Audio::SoundPlayWave(IXAudio2* xAudio2, const SoundData& soundData)
+void Audio::PlayWave(const SoundData& soundData, bool loop, float volume)
 {
 	// 波形フォーマットをもとにSourceVoiceの生成
-	hr = xAudio2->CreateSourceVoice(&pSourceVoice_, &soundData.wfex);
+	hr = xAudio2_->CreateSourceVoice(&pSourceVoice_, &soundData.wfex);
 	assert(SUCCEEDED(hr));
 
 	// 再生する波形データの設定
@@ -131,6 +132,14 @@ void Audio::SoundPlayWave(IXAudio2* xAudio2, const SoundData& soundData)
 	buf.pAudioData = soundData.pBuffer;
 	buf.AudioBytes = soundData.bufferSize;
 	buf.Flags = XAUDIO2_END_OF_STREAM;
+
+	// ボリュームを設定
+	SetVolume(volume);
+
+	// "loop" がtrueの場合ループさせる
+	if (loop) {
+		buf.LoopCount = XAUDIO2_LOOP_INFINITE; // 無限ループ
+	}
 
 	// 波形データの再生
 	hr = pSourceVoice_->SubmitSourceBuffer(&buf);

@@ -1,5 +1,8 @@
 #include "Vector3.h"
 
+// -
+Vector3 Vector3::operator-() const{	return Vector3{ -x, -y, -z }; }
+
 // 加算
 Vector3 Vector3::operator+(const Vector3& obj) const { return Vector3(x + obj.x, y + obj.y, z + obj.z); }
 

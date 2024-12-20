@@ -9,6 +9,8 @@ public:
 
 	Vector3(float x_ = 0, float y_ = 0, float z_ = 0) : x(x_), y(y_), z(z_) {}
 
+	// -
+	Vector3 operator-() const;
 	// 加算
 	Vector3 operator+(const Vector3& obj) const;
 	// 減算

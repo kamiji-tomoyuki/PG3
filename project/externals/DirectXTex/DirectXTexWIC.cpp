@@ -1377,7 +1377,7 @@ HRESULT DirectX::LoadFromWICMemory(
 }
 
 
-//-------------------------------------------------------------------------------------
+
 // Load a WIC-supported file from disk
 //-------------------------------------------------------------------------------------
 _Use_decl_annotations_
@@ -1385,7 +1385,7 @@ HRESULT DirectX::LoadFromWICFile(
     const wchar_t* szFile,
     WIC_FLAGS flags,
     TexMetadata* metadata,
-    ScratchImage& image,
+    ScratchImage& image,//-------------------------------------------------------------------------------------
     std::function<void(IWICMetadataQueryReader*)> getMQR)
 {
     if (!szFile)

@@ -1,36 +1,10 @@
 #pragma once
 #include <fstream>
-
-#include <xaudio2.h>
 #include "wrl.h"
 
-#pragma comment(lib,"xaudio2.lib")
+#include <AudioStruct.h>
 
 // オーディオ
-#pragma region 構造体
-	// チャンクヘッダ
-struct ChunkHeader {
-	char id[4];		 // チャンク毎のID
-	int32_t size;	 // チャンクサイズ
-};
-// RIFFヘッダチャンク
-struct RiffHeader {
-	ChunkHeader chunk;	// "RIFF"
-	char type[4];		// "WAVE"
-};
-// FMTチャンク
-struct FormatChunk {
-	ChunkHeader chunk;	// "fmt"
-	WAVEFORMATEX fmt;	// 波形フォーマット
-};
-// 音声データ
-struct SoundData {
-	WAVEFORMATEX wfex;		// 波形フォーマット
-	BYTE* pBuffer;			// バッファの先頭アドレス
-	unsigned int bufferSize;// バッファサイズ
-};
-#pragma endregion 構造体
-
 class Audio
 {
 #pragma region シングルトンインスタンス
@@ -60,7 +34,7 @@ public:
 	void SoundUnload(Microsoft::WRL::ComPtr<IXAudio2> xAudio2, SoundData* soundData);
 
 	// サウンド再生
-	void SoundPlayWave(IXAudio2* xAudio2, const SoundData& soundData);
+	void PlayWave(const SoundData& soundData, bool loop, float volume);
 	// サウンド停止
 	void SoundStop(IXAudio2SourceVoice* pSourceVoice);
 

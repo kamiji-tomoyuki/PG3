@@ -13,17 +13,18 @@
 
 class SpriteCommon;
 
-//スプライト
+// スプライト
 class Sprite
 {
-public://メンバ関数
-	//初期化
-	void Initialize(SpriteCommon* spriteCommon, std::string textureFilePath);
+public:// メンバ関数
+	// 初期化
+	void Initialize(std::string textureFilePath, 
+		Vector2 position, Vector4 color = { (1) , (1), (1), (1) }, Vector2 anchorpoint = {0.0f,0.0f});
 
-	//更新処理
+	// 更新処理
 	void Update();
 
-	//描画処理
+	// 描画処理
 	void Draw();
 
 public:
@@ -61,10 +62,10 @@ public:
 
 private:
 	//Data書き込み
-	void VertexDataWriting();
-	void IndexDataWriting();
-	void MaterialDataWriting();
-	void TransformationMatrixDataWriting();
+	void CreateVertexData();
+	void CreateIndexData();
+	void CreateMaterialData();
+	void CreateTransformMatrixData();
 
 	// テクスチャサイズをイメージに合わせる
 	void AdjustTextureSize();
@@ -79,14 +80,14 @@ private:
 		Vector2 texcoord;
 		Vector3 normal;
 	};
-	const int vertexCount = 6;//頂点数
-	//バッファリソース
+	const int vertexCount = 6;	// 頂点数
+	// バッファリソース
 	Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource;
 	Microsoft::WRL::ComPtr<ID3D12Resource> indexResource;
-	//バッファリソース内のデータを指すポインタ
+	// バッファリソース内のデータを指すポインタ
 	VertexData* vertexData = nullptr;
 	uint32_t* indexData = nullptr;
-	//バッファリソースの使い道を補足するバッファビュー
+	// バッファリソースの使い道を補足するバッファビュー
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView{};
 	D3D12_INDEX_BUFFER_VIEW indexBufferView{};
 
@@ -97,9 +98,9 @@ private:
 		float padding[3];
 		Matrix4x4 uvTransform;
 	};
-	//バッファリソース
+	// バッファリソース
 	Microsoft::WRL::ComPtr<ID3D12Resource> materialResource;
-	//バッファリソース内のデータを指すポインタ
+	// バッファリソース内のデータを指すポインタ
 	Material* materialData = nullptr;
 
 	// --- 座標変換 ---
@@ -107,9 +108,9 @@ private:
 		Matrix4x4 WVP;
 		Matrix4x4 World;
 	};
-	//バッファリソース
+	// バッファリソース
 	Microsoft::WRL::ComPtr<ID3D12Resource> transformationMatrixResource;
-	//バッファリソース内のデータを指すポインタ
+	// バッファリソース内のデータを指すポインタ
 	TransformationMatrix* transformationMatrixData = nullptr;
 
 	// --- world座標変換 ---
@@ -163,6 +164,5 @@ private:
 	float tex_right;
 	float tex_top;
 	float tex_bottom;
-
 };
 
