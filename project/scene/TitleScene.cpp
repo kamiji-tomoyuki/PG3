@@ -17,6 +17,14 @@ void TitleScene::Initialize()
 	sprite->Initialize(textureFile, { 0,0 }, { 1,1,1,1 }, { 0,0 });	// (スプライト名, 座標, 色, アンカーポイント);
 
 	// --- オブジェクト ---
+	//
+
+	inputHandler_ = new InputHandler();
+	inputHandler_->AssignMoveRightCommand2PressKeyA();
+	inputHandler_->AssignMoveLeftCommand2PressKeyA();
+
+	player_ = new Player();
+	player_->Init();
 }
 
 void TitleScene::Finalize()
@@ -27,6 +35,9 @@ void TitleScene::Finalize()
 	// ===== sample =====
 	delete sprite;
 	Audio::GetInstance()->SoundUnload(Audio::GetInstance()->GetXAudio2(), &soundData);
+
+	delete inputHandler_;
+	delete player_;
 }
 
 void TitleScene::Update()
@@ -48,6 +59,18 @@ void TitleScene::Update()
 	// 色
 	Vector4 color = sprite->GetColor();
 	sprite->SetColor(color);
+
+	// ============================================
+
+	iCommand_ = inputHandler_->HandleInput();
+
+	if (this->iCommand_) {
+		iCommand_->Exec(*player_);
+	}
+
+	player_->Update();
+
+	// ============================================
 
 	// --- シーン移行処理 ---
 	// ENTERキーを押した時
@@ -89,9 +112,11 @@ void TitleScene::Draw()
 	// ↓ ↓ ↓ ↓ Draw を書き込む ↓ ↓ ↓ ↓
 
 	// ===== sample =====
-	sprite->Draw();
-	Draw2D::GetInstance()->DrawBox({ kClientWidth / 2 , kClientHeight / 2 }, { 100.0f,100.0f }, { 1.0f, 1.0f, 1.0f, 1.0f });
-	Draw2D::GetInstance()->DrawLine({ 0.0f,0.0f }, { 200.0f,200.0f }, { 1.0f, 1.0f, 1.0f, 1.0f });
+	//sprite->Draw();
+	//Draw2D::GetInstance()->DrawBox({ kClientWidth / 2 , kClientHeight / 2 }, { 100.0f,100.0f }, { 1.0f, 1.0f, 1.0f, 1.0f });
+	//Draw2D::GetInstance()->DrawLine({ 0.0f,0.0f }, { 200.0f,200.0f }, { 1.0f, 1.0f, 1.0f, 1.0f });
+
+	player_->Draw();
 
 	// ↑ ↑ ↑ ↑ Draw を書き込む ↑ ↑ ↑ ↑
 #pragma endregion

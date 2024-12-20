@@ -9,6 +9,10 @@
 #include <Sprite.h>
 #include <Object3d.h>
 
+#include"Player.h"
+#include"InputHandler.h"
+#include"Command.h"
+
 class TitleScene : public BaseScene
 {
 public:
@@ -37,4 +41,8 @@ private: // メンバ変数
 
 	// サウンド
 	SoundData soundData;
+
+	InputHandler* inputHandler_ = nullptr;
+	ICommand* iCommand_ = nullptr;
+	Player* player_;
 };

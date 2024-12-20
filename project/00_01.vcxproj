@@ -130,6 +130,9 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="gameEngine\base\DirectX\D3DResourceLeakChecker.cpp" />
     <ClCompile Include="gameEngine\base\DirectX\DirectXCommon.cpp" />
     <ClCompile Include="gameEngine\base\scene\Framework.cpp" />
+    <ClCompile Include="scene\include\command.cpp" />
+    <ClCompile Include="scene\include\InputHandler.cpp" />
+    <ClCompile Include="scene\include\Player.cpp" />
     <ClCompile Include="scene\include\Sample.cpp" />
     <ClCompile Include="scene\GamePlayScene.cpp" />
     <ClCompile Include="gameEngine\utility\Logger.cpp" />
@@ -181,6 +184,9 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="gameEngine\base\DirectX\D3DResourceLeakChecker.h" />
     <ClInclude Include="gameEngine\base\DirectX\DirectXCommon.h" />
     <ClInclude Include="gameEngine\base\scene\Framework.h" />
+    <ClInclude Include="scene\include\command.h" />
+    <ClInclude Include="scene\include\InputHandler.h" />
+    <ClInclude Include="scene\include\Player.h" />
     <ClInclude Include="scene\include\Sample.h" />
     <ClInclude Include="scene\GamePlayScene.h" />
     <ClInclude Include="gameEngine\utility\Logger.h" />
